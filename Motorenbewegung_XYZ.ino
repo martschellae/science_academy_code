@@ -19,7 +19,7 @@ int gesamtLaenge_z = 200;
 int infrarot = 100;
 int infrarot2 = 100;
 
-int del = 2; 
+int del = 200; 
 
 int koordinate_x = 0;
 int koordinate_y = 0;
@@ -52,6 +52,9 @@ this->richtungsPin = pR;
 this->schrittPin = pS;
 this->Koordinate = K;
 this->gesamtLaenge = gL;
+
+pinMode(richtungsPin, OUTPUT);
+pinMode(schrittPin, OUTPUT);
 }
 
 void Motor::schritt(){
@@ -62,7 +65,7 @@ void Motor::schritt(){
     digitalWrite(schrittPin, LOW);
 
     this->Koordinate++;
-    delay(del);
+    delayMicroseconds(del);
   }
     else
     {
@@ -72,7 +75,7 @@ void Motor::schritt(){
       digitalWrite(schrittPin, LOW);
 
       this->Koordinate--;
-      delay(del);
+      delayMicroseconds(del);
     }
 
 }
@@ -94,14 +97,14 @@ void Motor::bewegen(int anzahl)
   {
     infrarot = analogRead(A1);
     infrarot2 = analogRead(A2);
-    if(infrarot > 2 && infrarot2 > 2)
-    {
-      messen();
+    /*if(infrarot > 2 && infrarot2 > 2) {
+      
+    }
+    */
+    messen();
       printen();
       this->schritt();
       
-    }
-    
     
   }
 }
@@ -128,25 +131,16 @@ void Motor::startpunkt(){
 
 };
 
-Motor motorx(2,3, 0, 200);
-Motor motory(6,7, 0, 200);
-Motor motorz(4,5, 200, 200);
-
-
-
 void setup(){
+  Motor motorx(6,5, 0, 200);
+  Motor motory(6,4, 0, 200);
+  Motor motorz(6,3, 200, 200);
 
   Serial.begin(9600);
   normalWert_x = analogRead (HallPin_x);
   normalWert_y = analogRead (HallPin_y);
   normalWert_z = analogRead (HallPin_z);
 
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
 }
