@@ -9,7 +9,10 @@ from math import sqrt
 from matplotlib.animation import FuncAnimation
 import plotly.express as px
 
-arduino = serial.Serial('/dev/ttyACM0',250000)
+try:
+    arduino = serial.Serial('/dev/ttyACM0',250000)
+except:
+    arduino = serial.Serial('/dev/ttyACM1',250000)
 
 arduino.setDTR(False)
 arduino.flushInput()
