@@ -11,8 +11,8 @@ long normalWert_x = 0;
 long normalWert_y = 0;
 long normalWert_z = 0;
 
-int millimeterX = 5;
-int millimeterY = 60;
+int millimeterX = 3;
+int millimeterY = 5;
 int millimeterZ = 1;
 
 int messabstand = 800;
@@ -38,16 +38,16 @@ private:
   int richtungsPin;
   
 public:
-int gesamtLaenge;
+long gesamtLaenge;
 bool richtung;
-int Koordinate;
+long Koordinate;
 int delaySchritte;
 long schritte;
 long distanz;
 float faktor;
 long gsamtlaenge;
 
-Motor::Motor(int pR, int pS, int K, int gL, int ds, long steps, float fkt){
+Motor::Motor(int pR, int pS, long K, long gL, int ds, long steps, float fkt){
 this->richtungsPin = pR;
 this->schrittPin = pS;
 this->Koordinate = K;
@@ -141,18 +141,22 @@ void loop()
 {
   
 }
-Motor motorx(6,5, 0, 100, 10, 3200, 2);
-Motor motory(6,3, 0, 60, 10, 3200, 2);
+Motor motorx(6,5, 0, 9, 10, 3200, 2);
+Motor motory(6,3, 0, 10, 10, 3200, 2);
 Motor motorz(6, 4, 0, 5, 1000, 6400, 51.7);
 
 
 void scannenXY(){
+
   motorx.umrechnen();
   motory.umrechnen();
   motorz.umrechnen();
+ 
   motorz.Koordinate=0;
+  motory.Koordinate = motory.gsamtlaenge;
   motorz.richtungHoch();
   motorz.bewegen(70, false);
+  
   for(int c = 0; c < 500; c++)
   {
     motorx.durchschnitt();
@@ -165,7 +169,7 @@ void scannenXY(){
   
   while(motorz.Koordinate < motorz.gsamtlaenge) {
 
-      while(motorx.Koordinate <= motorx.gsamtlaenge) {
+      while(motorx.Koordinate < motorx.gsamtlaenge) {
         motory.richtungRunter();
         motory.bewegen(millimeterY, true);
         motorx.richtungHoch();
@@ -178,7 +182,7 @@ void scannenXY(){
       motory.richtungRunter();
       motory.bewegen(millimeterY, true);
       motorz.richtungHoch();
-      motorz.bewegen(millimeterX, true);
+      motorz.bewegen(millimeterZ, true);
       while(motorx.Koordinate >= 0) {
         motory.richtungHoch();
         motory.bewegen(millimeterY, true);
