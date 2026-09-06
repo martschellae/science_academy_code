@@ -7,51 +7,57 @@ int HallSignal_x = 0;
 int HallSignal_y = 0;
 int HallSignal_z = 0;
 
-int normalWert_x = 0;
-int normalWert_y = 0;
-int normalWert_z = 0;
+long normalWert_x = 0;
+long normalWert_y = 0;
+long normalWert_z = 0;
+
+int millimeterX = 5;
+int millimeterY = 60;
+int millimeterZ = 1;
+
+int messabstand = 800;
+long schrittzaehler = 0;
 
 
-int gesamtLaenge_x = 200;
-int gesamtLaenge_y = 200;
-int gesamtLaenge_z = 200;
-
-int infrarot = 100;
-int infrarot2 = 100;
-
-int del = 2; 
-
-int koordinate_x = 0;
-int koordinate_y = 0;
-int koordinate_z = 0;
 
 void messen() {
-
   HallSignal_x = analogRead(HallPin_x);
   HallSignal_x = HallSignal_x - normalWert_x;
 
   HallSignal_y = analogRead(HallPin_y);
-  HallSignal_y = HallSignal_y - normalWert_y;
+  HallSignal_y = HallSignal_y - normalWert_x;
 
   HallSignal_z = analogRead(HallPin_z);
-  HallSignal_z = HallSignal_z - normalWert_z;
-
+  HallSignal_z = HallSignal_z - normalWert_x;
 }
 
 class Motor {
 private:
-  bool richtung;
+  
   int schrittPin;
   int richtungsPin;
-  int Koordinate;
-  int gesamtLaenge;
+  
 public:
+int gesamtLaenge;
+bool richtung;
+int Koordinate;
+int delaySchritte;
+long schritte;
+long distanz;
+float faktor;
+long gsamtlaenge;
 
-Motor::Motor(int pR, int pS, int K, int gL){
+Motor::Motor(int pR, int pS, int K, int gL, int ds, long steps, float fkt){
 this->richtungsPin = pR;
 this->schrittPin = pS;
 this->Koordinate = K;
 this->gesamtLaenge = gL;
+this->delaySchritte = ds;
+this->schritte = steps;
+this->faktor = fkt;
+
+pinMode(richtungsPin, OUTPUT);
+pinMode(schrittPin, OUTPUT);
 }
 
 void Motor::schritt(){
@@ -61,136 +67,150 @@ void Motor::schritt(){
     digitalWrite(schrittPin, HIGH);
     digitalWrite(schrittPin, LOW);
 
+    this->Koordinate--;
+    schrittzaehler++;
+    delayMicroseconds(this->delaySchritte);
+  }else{
+    digitalWrite(richtungsPin, LOW);
+    digitalWrite(schrittPin, HIGH);
+    digitalWrite(schrittPin, LOW);
+
+    schrittzaehler++;
     this->Koordinate++;
-    delay(del);
+    delayMicroseconds(this->delaySchritte);
   }
-    else
-    {
-      
-      digitalWrite(richtungsPin, LOW);
-      digitalWrite(schrittPin, HIGH);
-      digitalWrite(schrittPin, LOW);
-
-      this->Koordinate--;
-      delay(del);
-    }
 
 }
 
-void Motor::printen()
+void Motor::bewegen(long millimeter, bool ausgeben) 
 {
-  Serial.println(HallSignal_x);
-  Serial.println(HallSignal_y);
-  Serial.println(HallSignal_z);
-
-  Serial.println(koordinate_x );
-  Serial.println(koordinate_y);
-  Serial.println(this->Koordinate);
-}
-
-void Motor::bewegen(int anzahl) 
-{
-  for(int c = 0; c < anzahl; c++)
+  distanz = millimeter * schritte / faktor;
+  for(int c = 0; c < distanz; c++)
   {
-    infrarot = analogRead(A1);
-    infrarot2 = analogRead(A2);
-    if(infrarot > 2 && infrarot2 > 2)
-    {
+    if(ausgeben){
       messen();
       printen();
-      this->schritt();
-      
     }
-    
-    
-  }
-}
-void Motor::hochfahren()
-{
-for (int c=0; c<(this->gesamtLaenge - this->Koordinate); c++){
-this->schritt();
-}
-}
-
-void Motor::richtungAendern()
-{
-  this->richtung = !this->richtung;
-
-}
-
-void Motor::startpunkt(){
-  this->richtungAendern();
-  while(this->Koordinate != 0)
-  {
     this->schritt();
   }
 }
 
+void Motor::hochfahren()
+{
+  for (int c=0; c<(this->gesamtLaenge - this->Koordinate); c++){
+    this->schritt();
+  }
+}
+
+void Motor::richtungHoch() {
+  this->richtung = false;
+}
+
+void Motor::richtungRunter() {
+  this->richtung = true;
+}
+void Motor::nullpunkt(int zeit) {
+  for(int c = 0; c <= zeit; c++) {
+    this->richtungHoch();
+    schritt();
+  }
+  this->Koordinate = 0;
+}
+
+void Motor::durchschnitt() {
+  normalWert_x = normalWert_x + analogRead(HallPin_x);
+  normalWert_y = normalWert_y + analogRead(HallPin_y);
+  normalWert_z = normalWert_z + analogRead(HallPin_z);
+}
+
+void Motor::umrechnen(){
+  this->gsamtlaenge = this->gesamtLaenge * this->schritte / this->faktor;
+}
 };
 
-Motor motorx(2,3, 0, 200);
-Motor motory(6,7, 0, 200);
-Motor motorz(4,5, 200, 200);
-
-
-
 void setup(){
-
-  Serial.begin(9600);
-  normalWert_x = analogRead (HallPin_x);
-  normalWert_y = analogRead (HallPin_y);
-  normalWert_z = analogRead (HallPin_z);
-
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
+  pinMode(A0, INPUT);
   pinMode(A1, INPUT);
   pinMode(A2, INPUT);
+  Serial.begin(250000);
+ 
+  scannenXY();
 }
 
 void loop()
 {
-  prototyp();
+  
 }
+Motor motorx(6,5, 0, 100, 10, 3200, 2);
+Motor motory(6,3, 0, 60, 10, 3200, 2);
+Motor motorz(6, 4, 0, 5, 1000, 6400, 51.7);
 
 
-void prototyp() 
-{
-  while(koordinate_x <= gesamtLaenge_x) 
+void scannenXY(){
+  motorx.umrechnen();
+  motory.umrechnen();
+  motorz.umrechnen();
+  motorz.Koordinate=0;
+  motorz.richtungHoch();
+  motorz.bewegen(70, false);
+  for(int c = 0; c < 500; c++)
   {
-    motorx.schritt();
-    koordinate_x++;
-        if(koordinate_x % 2 == 0){
-          while(koordinate_y <= gesamtLaenge_y){
-            motory.schritt();
-            koordinate_y++;
-            motorz.bewegen(gesamtLaenge_z);
+    motorx.durchschnitt();
+  }
+  normalWert_x = normalWert_x / 500;
+  normalWert_y = normalWert_y / 500;
+  normalWert_z = normalWert_z / 500;
+  motorz.richtungRunter();
+  motorz.bewegen(70, false);
+  
+  while(motorz.Koordinate < motorz.gsamtlaenge) {
 
-            motorz.richtungAendern();
-            motorz.hochfahren();
-          }
-        }
-        else{
-          while(koordinate_y >= 0){
-            motory.richtungAendern();
-            motory.schritt();
-
-            koordinate_y--;
-
-            motorz.bewegen(gesamtLaenge_z);
-            
-
-            motorz.richtungAendern();
-            motorz.hochfahren();
-          }
-        }
+      while(motorx.Koordinate <= motorx.gsamtlaenge) {
+        motory.richtungRunter();
+        motory.bewegen(millimeterY, true);
+        motorx.richtungHoch();
+        motorx.bewegen(millimeterX, true);
+        motory.richtungHoch();
+        motory.bewegen(millimeterY, true);
+        motorx.richtungHoch();
+        motorx.bewegen(millimeterX, true);
+      }
+      motory.richtungRunter();
+      motory.bewegen(millimeterY, true);
+      motorz.richtungHoch();
+      motorz.bewegen(millimeterX, true);
+      while(motorx.Koordinate >= 0) {
+        motory.richtungHoch();
+        motory.bewegen(millimeterY, true);
+        motorx.richtungRunter();
+        motorx.bewegen(millimeterX, true);
+        motory.richtungRunter();
+        motory.bewegen(millimeterY, true);
+        motorx.richtungRunter();
+        motorx.bewegen(millimeterX, true);
+      }
+      motory.richtungHoch();
+      motory.bewegen(millimeterY, true);
+      motorz.richtungHoch();
+      motorz.bewegen(millimeterZ, true);
   }
 
-  motory.startpunkt();
-  motorx.startpunkt();
-    
 }
+void printen()
+{  if(schrittzaehler % messabstand == 0){
 
+      Serial.print(motorx.Koordinate);
+      Serial.print(", ");
+      Serial.print(motory.Koordinate);
+      Serial.print(", ");
+      Serial.print(motorz.Koordinate);
+      Serial.print(", ");
+
+      Serial.print(HallSignal_x);
+      Serial.print(", ");
+      Serial.print(HallSignal_y);
+      Serial.print(", ");
+      Serial.print(HallSignal_z);
+      Serial.println("");
+    }
+}
