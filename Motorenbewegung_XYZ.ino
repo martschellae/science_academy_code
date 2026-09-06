@@ -12,7 +12,7 @@ long normalWert_y = 0;
 long normalWert_z = 0;
 
 int millimeterX = 3;
-int millimeterY = 5;
+int millimeterY = 90;
 int millimeterZ = 1;
 
 int messabstand = 800;
@@ -141,8 +141,8 @@ void loop()
 {
   
 }
-Motor motorx(6,5, 0, 9, 10, 3200, 2);
-Motor motory(6,3, 0, 10, 10, 3200, 2);
+Motor motorx(6,5, 0, 70, 10, 1600, 2);
+Motor motory(6,3, 0, 90, 10, 800, 2);
 Motor motorz(6, 4, 0, 5, 1000, 6400, 51.7);
 
 
@@ -198,7 +198,15 @@ void scannenXY(){
       motorz.richtungHoch();
       motorz.bewegen(millimeterZ, true);
   }
-
+  if(motory.Koordinate != motory.gsamtlaenge){
+    motory.richtungRunter();
+    motory.bewegen(motory.gsamtlaenge, false);
+  }
+  if(motorx.Koordinate != 0){
+      motorx.richtungHoch();
+      motorx.bewegen(motorx.gsamtlaenge, false);
+  }
+    
 }
 void printen()
 {  if(schrittzaehler % messabstand == 0){
