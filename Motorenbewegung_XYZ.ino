@@ -7,17 +7,17 @@ int HallSignal_x = 0;
 int HallSignal_y = 0;
 int HallSignal_z = 0;
 
-int normalWert_x = 0;
-int normalWert_y = 0;
-int normalWert_z = 0;
+long normalWert_x = 0;
+long normalWert_y = 0;
+long normalWert_z = 0;
 
+int millimeterX = 3;
+int millimeterY = 90;
+int millimeterZ = 1;
 
-int gesamtLaenge_x = 200;
-int gesamtLaenge_y = 200;
-int gesamtLaenge_z = 200;
+int messabstand = 800;
+long schrittzaehler = 0;
 
-int infrarot = 100;
-int infrarot2 = 100;
 
 int koordinate_x = 0;
 int koordinate_y = 0;
@@ -33,7 +33,7 @@ void messen() {
   HallSignal_x = HallSignal_x - normalWert_x;
 
   HallSignal_y = analogRead(HallPin_y);
-  HallSignal_y = HallSignal_y - normalWert_y;
+  HallSignal_y = HallSignal_y - normalWert_x;
 
   HallSignal_z = analogRead(HallPin_z);
   HallSignal_z = HallSignal_z - normalWert_z;
@@ -80,20 +80,10 @@ void Motor::schritt(){
 
 }
 
-void Motor::printen()
+void Motor::bewegen(long millimeter, bool ausgeben) 
 {
-  Serial.println(HallSignal_x);
-  Serial.println(HallSignal_y);
-  Serial.println(HallSignal_z);
-
-  Serial.println(koordinate_x );
-  Serial.println(koordinate_y);
-  Serial.println(this->Koordinate);
-}
-
-void Motor::bewegen(int anzahl) 
-{
-  for(int c = 0; c < anzahl; c++)
+  distanz = millimeter * schritte / faktor;
+  for(int c = 0; c < distanz; c++)
   {
     //infrarot = analogRead(A1);
     //infrarot2 = analogRead(A2);
@@ -113,10 +103,8 @@ void Motor::hochfahren()
   }
 }
 
-void Motor::richtungAendern()
-{
-  this->richtung = !this->richtung;
-
+void Motor::richtungHoch() {
+  this->richtung = false;
 }
 
 void Motor::startpunkt(){
@@ -124,6 +112,7 @@ void Motor::startpunkt(){
   while(this->Koordinate != 0){
     this->schritt();
   }
+  this->Koordinate = 0;
 }
 
 void Motor::bewegeZu(int ziel) {
